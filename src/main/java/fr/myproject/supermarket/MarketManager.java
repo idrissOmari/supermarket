@@ -1,13 +1,11 @@
 package fr.myproject.supermarket;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import fr.myproject.supermarket.cart.Cart;
-import fr.myproject.supermarket.cart.CartItem;
 import fr.myproject.supermarket.order.Order;
 import fr.myproject.supermarket.order.OrderItem;
 import fr.myproject.supermarket.product.Product;
@@ -25,14 +23,11 @@ public class MarketManager {
 	 */
 	public Order processCart(Cart cart) {
 		Order order = new Order();
-		Optional<List<CartItem>> listItems = cart.getCartItems();
-		if (listItems.isPresent()) {
-			listItems.get().stream().map(OrderItem::new).forEach(oi -> order.addOrderItem(oi));
-			applyOffers(order, cart);
-		}
+		cart.getCartItems().orElse(new ArrayList<>()).stream().map(OrderItem::new)
+				.forEach(oi -> order.addOrderItem(oi));
+		applyOffers(order, cart);
 		return order;
 	}
-
 
 	/**
 	 * Apply available offers
@@ -42,12 +37,13 @@ public class MarketManager {
 	 */
 	private void applyOffers(Order order, Cart cart) {
 		Map<Product, BigDecimal> quantityProduct = cart.getProductQuantity();
-		quantityProduct.keySet().stream()
-		.filter(prd -> allPromos.containsKey(prd)).forEach(prd ->processPromo(order, quantityProduct, prd));
+		quantityProduct.keySet().stream().filter(prd -> allPromos.containsKey(prd))
+				.forEach(prd -> processPromo(order, quantityProduct, prd));
 	}
 
 	/**
 	 * To process each promo
+	 * 
 	 * @param order
 	 * @param quantityProduct
 	 * @param product
@@ -55,9 +51,10 @@ public class MarketManager {
 	private void processPromo(Order order, Map<Product, BigDecimal> quantityProduct, Product product) {
 		allPromos.get(product).processPromo(order, quantityProduct.get(product));
 	}
-	
+
 	/**
 	 * Adding available promos
+	 * 
 	 * @param promo
 	 */
 	public void addPromo(Promo promo) {
